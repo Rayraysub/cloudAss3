@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Key
 
 
 BUCKET_NAME = os.environ["BUCKET_NAME"]
-PLOTTING_URL_PARAM = os.environ["PLOTTING_URL_PARAM"]
+PLOTTING_URL = os.environ["PLOTTING_URL"]
 TABLE_NAME = os.environ["TABLE_NAME"]
 SLEEP_SECONDS = int(os.environ.get("SLEEP_SECONDS", "1"))
 PLOTTING_DELAY_SECONDS = int(os.environ.get("PLOTTING_DELAY_SECONDS", "2"))
@@ -50,7 +50,6 @@ def _wait_for_expected_size(table, expected_size):
 
 def lambda_handler(_event, _context):
     s3 = boto3.client("s3")
-    ssm = boto3.client("ssm")
     table = boto3.resource("dynamodb").Table(TABLE_NAME)
     steps = []
 
@@ -98,8 +97,7 @@ def lambda_handler(_event, _context):
 
     plot_result = None
     try:
-        plotting_url = ssm.get_parameter(Name=PLOTTING_URL_PARAM)["Parameter"]["Value"]
-        request = urllib.request.Request(plotting_url, method="GET")
+        request = urllib.request.Request(PLOTTING_URL, method="GET")
         with urllib.request.urlopen(request, timeout=60) as response:
             payload = response.read().decode("utf-8")
             plot_result = {"status": response.status, "responseBody": payload}

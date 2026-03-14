@@ -2,13 +2,14 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 interface ApiStackProps extends cdk.StackProps {
   plotLambda: lambda.Function;
 }
 
 export class ApiStack extends cdk.Stack {
+  public readonly plotUrl: string;
+
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
@@ -20,15 +21,10 @@ export class ApiStack extends cdk.Stack {
       new apigateway.LambdaIntegration(props.plotLambda)
     );
 
-    const plotUrl = `${api.url}plot`;
-
-    new ssm.StringParameter(this, 'PlottingUrlParameter', {
-      parameterName: '/assignment3/plotting-url',
-      stringValue: plotUrl,
-    });
+    this.plotUrl = `${api.url}plot`;
 
     new cdk.CfnOutput(this, 'PlotApiUrl', {
-      value: plotUrl,
+      value: this.plotUrl,
     });
   }
 }
